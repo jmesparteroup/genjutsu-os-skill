@@ -1,0 +1,23 @@
+# Apply from a dedicated deployment directory; preserve claude-lock.json between applies.
+name: genjutsu-fal-cma
+config:
+  type: cloud
+  packages:
+    apt:
+      - ffmpeg
+      - rubberband-cli
+      - ca-certificates
+    pip:
+      - fal-client==1.0.3
+      - numpy==2.2.6
+  networking:
+    type: limited
+    allow_package_managers: true
+    allowed_hosts:
+      - fal.ai
+      - '*.fal.ai'
+      - fal.run
+      - '*.fal.run'
+      - fal.media
+      - '*.fal.media'
+      - storage.googleapis.com

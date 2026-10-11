@@ -1,0 +1,30 @@
+{
+  "python": "3.12.3",
+  "checks": {
+    "ffmpeg": {
+      "path": "/usr/bin/ffmpeg",
+      "executable": true,
+      "version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
+    },
+    "ffprobe": {
+      "path": "/usr/bin/ffprobe",
+      "executable": true,
+      "version": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers"
+    },
+    "rubberband": {
+      "path": "/usr/bin/rubberband",
+      "executable": true,
+      "version": "3.3.0"
+    },
+    "fal-client": {
+      "version": "1.0.3",
+      "expected": "1.0.3"
+    },
+    "numpy": {
+      "version": "2.2.6",
+      "expected": "2.2.6"
+    },
+    "h264_maskedmerge": true
+  },
+  "ok": true
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "model": "demucs",
+    "status": "PASS",
+    "schema_sha256": "f355e4ba23a908b05cf6220c2c6d798753c85239e478e35a88b143e0844c31b3"
+  },
+  {
+    "model": "depth",
+    "status": "PASS",
+    "schema_sha256": "62d58850651bbb93418646ce2713dfb47d28679ac215abcdbb468b33fe83d6d1"
+  },
+  {
+    "model": "sam",
+    "status": "PASS",
+    "schema_sha256": "d319e4054089c4566c8128b2b3e7d86fb02cddf33f0cbfee677f3f5fd597d1a0"
+  },
+  {
+    "model": "seedance25",
+    "status": "PASS",
+    "schema_sha256": "f695b851fca4db6d9d7d7f531eee1c5c6e51265290f6c91d5fc862236807ed62"
+  }
+]

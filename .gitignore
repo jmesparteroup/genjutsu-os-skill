@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+/dist/
+/runs/
+/inputs/
+/outputs/
+claude-lock.json
+*.part
+.DS_Store

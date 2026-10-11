@@ -1,0 +1,9 @@
+.git
+dist
+runs
+inputs
+outputs
+**/__pycache__
+**/*.pyc
+.env
+.env.*

@@ -1,0 +1,15 @@
+{
+  "files": {
+    "SKILL.md": "4dd4d5b653b00d37cbe6cca456d87774945d00c67ebbab89c619c6dcab265598",
+    "assets/environment.yaml": "7581b1507259528f00c8048a616135e965e7ea748ca182d2878e2cb415ca5e17",
+    "assets/requirements.txt": "c702b95a3d2595dd15516e27fe6d78aba7df685f2a3dff50df3f6346371af8a5",
+    "references/cma-setup.md": "d3e54f9f823b53d6e934244d735a03ccca9cf245da752b373e7892e3cf2bbb5a",
+    "references/operation.md": "195dee6b0f5708ef1312720ad02a42dc9035c2290512f0bc3e4d7afaa0539f37",
+    "scripts/bootstrap.sh": "2f375921e4f0dd24b2c72293dc8b04c782873775b523240da2078b33713232b8",
+    "scripts/doctor.py": "9eba1c8e70c559b3b442b0ab66e2c292064f6a9c49c7818b7b3b9b0eea93c86d",
+    "scripts/genjutsu.py": "a2530f0b9060ba151c8779be0212f4922f11f22c0fc26db5ac99bf8e28d4c549",
+    "scripts/media.sh": "c9269dbd9f85016576d7febccfe2795632a97f8956a0ee4c745d17b8f3ed6e18",
+    "scripts/validate_mask.py": "c89409345d2999c9f42d6970fe35ef2a57d42b82d6f643283c98e62e106e5ab7"
+  },
+  "archive_sha256": "713c35b021c93bd5ee5e0ef6e0a681bbcb15f214e3d321d863713f9f3a4656c0"
+}
