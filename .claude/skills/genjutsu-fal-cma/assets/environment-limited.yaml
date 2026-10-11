@@ -1,0 +1,26 @@
+# OPTIONAL: only for a dedicated channel explicitly choosing restricted networking.
+# This limits web_search/web_fetch and other non-allowlisted network access.
+# Never replace a shared channel's current config with this template.
+name: genjutsu-fal-cma-limited
+config:
+  type: cloud
+  packages:
+    apt:
+      - ffmpeg
+      - rubberband-cli
+      - ca-certificates
+    pip:
+      - fal-client==1.0.3
+      - numpy==2.2.6
+  networking:
+    type: limited
+    allow_mcp_servers: true
+    allow_package_managers: true
+    allowed_hosts:
+      - fal.ai
+      - '*.fal.ai'
+      - fal.run
+      - '*.fal.run'
+      - fal.media
+      - '*.fal.media'
+      - storage.googleapis.com

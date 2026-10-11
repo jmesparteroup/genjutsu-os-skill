@@ -1,4 +1,7 @@
-# Apply from a dedicated deployment directory; preserve claude-lock.json between applies.
+# Standalone environment for a NEW dedicated video channel/session.
+# For an existing Daimon channel, merge packages into a copy of its current config
+# and preserve its networking and other settings. Do not apply this as a replacement.
+# Preserve claude-lock.json between standalone ant applies.
 name: genjutsu-fal-cma
 config:
   type: cloud
@@ -11,13 +14,4 @@ config:
       - fal-client==1.0.3
       - numpy==2.2.6
   networking:
-    type: limited
-    allow_package_managers: true
-    allowed_hosts:
-      - fal.ai
-      - '*.fal.ai'
-      - fal.run
-      - '*.fal.run'
-      - fal.media
-      - '*.fal.media'
-      - storage.googleapis.com
+    type: unrestricted

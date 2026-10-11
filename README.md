@@ -6,16 +6,18 @@ The skill includes Linux dependencies, upload/queue orchestration, resumable req
 
 ## Install in CMA
 
+**Existing Daimon channel:** import the skill first and preserve its current environment. If dependencies are missing, merge them into a copy of the current environment, preserving its packages and network policy, and test in a dedicated video channel. Selecting an environment affects every conversation in the parent channel. See the [setup and recovery guide](.claude/skills/genjutsu-fal-cma/references/cma-setup.md).
+
 The skill lives at [`.claude/skills/genjutsu-fal-cma`](.claude/skills/genjutsu-fal-cma/SKILL.md), the repository layout CMA discovers when this repository is mounted into a cloud session.
 
-Alternatively, upload the skill directory through the official Anthropic CLI from a dedicated deployment directory:
+For a new standalone CMA deployment, upload the skill directory through the official Anthropic CLI from a dedicated deployment directory:
 
 ```bash
 ant apply /absolute/repo/path/.claude/skills/genjutsu-fal-cma
 ant apply /absolute/repo/path/.claude/skills/genjutsu-fal-cma/assets/environment.yaml
 ```
 
-Preserve that deployment directory's `claude-lock.json` privately for later resource updates; it is excluded from this skill source repository. Attach the returned custom skill ID to an existing agent, use the supplied environment, and provide FAL credentials through a CMA vault. Read the [CMA setup guide](.claude/skills/genjutsu-fal-cma/references/cma-setup.md) and [operation guide](.claude/skills/genjutsu-fal-cma/references/operation.md) for details.
+Preserve that deployment directory's `claude-lock.json` privately for later resource updates; it is excluded from this skill source repository. Attach the returned custom skill ID while preserving existing skills, use the validated dedicated environment, and provide FAL credentials through a CMA vault. The standalone template has unrestricted networking; an optional `environment-limited.yaml` explicitly permits MCP servers and package managers. Neither template should replace a shared channel's policy during skill installation. Read the [CMA setup guide](.claude/skills/genjutsu-fal-cma/references/cma-setup.md) and [operation guide](.claude/skills/genjutsu-fal-cma/references/operation.md) for details.
 
 ## Build an uploadable ZIP
 
