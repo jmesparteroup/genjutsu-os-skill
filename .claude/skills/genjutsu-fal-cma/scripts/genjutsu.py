@@ -214,7 +214,10 @@ def probe(path):
 def seedance_payload(video_url, character_url, prompt, duration):
     check(float(duration).is_integer() and 4 <= float(duration) <= 15,
           'This skill supports exact whole-second clips from 4 to 15 seconds; do not trim or round silently.')
-    return {'video_urls': [video_url], 'image_urls': [character_url], 'prompt': prompt,
+    images = [character_url] if isinstance(character_url, str) else list(character_url)
+    check(1 <= len(images) <= 2 and all(isinstance(url, str) for url in images),
+          'Supply one or two ordered character references.')
+    return {'video_urls': [video_url], 'image_urls': images, 'prompt': prompt,
             'task': 'reference', 'resolution': '480p', 'draft': False, 'duration': str(int(duration)),
             'aspect_ratio': 'auto', 'generate_audio': True, 'codec': 'H264'}
 
@@ -234,18 +237,28 @@ def reference_check(path):
 def originals(run, state):
     for name, field in ((state['source'], 'source_sha256'), (state['character'], 'character_sha256')):
         check(sha(run / name) == state[field], 'Original input changed; create a fresh run.')
+    if state.get('character2'):
+        check(sha(run / state['character2']) == state['character2_sha256'],
+              'Second character input changed; create a fresh run.')
 
 
 def review_fingerprint(run, state):
-    return digest({'files': {name: sha(run / name) for name in REVIEW_FILES},
-                   'source': state['source_sha256'], 'character': state['character_sha256'],
-                   'prompt': state['prompt']})
+    content = {'files': {name: sha(run / name) for name in REVIEW_FILES},
+               'source': state['source_sha256'], 'character': state['character_sha256'],
+               'prompt': state['prompt']}
+    if state.get('character2'):
+        content['character2'] = state['character2_sha256']
+    return digest(content)
 
 
-def require_review(run, state):
-    approval = state.get('review', {})
-    check(bool(approval.get('reviewer') and approval.get('evidence')), 'Human mask and prepared-video review is required.')
-    check(approval.get('fingerprint') == review_fingerprint(run, state), 'Review is stale; media or prompt changed.')
+def require_preparation(run, state):
+    validation = state.get('preparation', {})
+    # Legacy runs already bound their validated media in the optional review record.
+    if not validation and state.get('review'):
+        validation = state['review']
+    check(bool(validation.get('fingerprint')), 'Validated preparation is required; run build-review first.')
+    check(validation['fingerprint'] == review_fingerprint(run, state),
+          'Preparation is stale; media or prompt changed. Rebuild with build-review before generation.')
 
 
 def init(args):
@@ -253,9 +266,12 @@ def init(args):
     check(not run.exists(), 'Run directory already exists. Choose a fresh directory.')
     source, character = Path(args.source).resolve(), Path(args.character).resolve()
     check(source.is_file() and character.is_file(), 'Source clip and character image are required.')
-    check(character.stat().st_size <= 30 * 1024**2, 'Character image exceeds 30 MB.')
-    check(character.suffix.lower() in ('.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tif', '.tiff', '.gif', '.heic', '.heif'),
-          'Unsupported character image extension.')
+    character2 = Path(args.character2).resolve() if getattr(args, 'character2', None) else None
+    for image in [character] + ([character2] if character2 else []):
+        check(image.is_file(), 'Character image is missing.')
+        check(image.stat().st_size <= 30 * 1024**2, 'Character image exceeds 30 MB.')
+        check(image.suffix.lower() in ('.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tif', '.tiff', '.gif', '.heic', '.heif'),
+              'Unsupported character image extension.')
     data, v, a = probe(source)
     check(v is not None and a is not None, 'Source needs video and an audible first audio stream.')
     duration = float(data['format']['duration'])
@@ -265,6 +281,9 @@ def init(args):
           'Source audio/video start times differ; timing needs explicit handling before this workflow.')
     prompt = Path(args.prompt_file).read_text().strip() if args.prompt_file else DEFAULT_PROMPT
     check(bool(prompt), 'Prompt is empty.')
+    if character2:
+        check(args.prompt_file and '@Image1' in prompt and '@Image2' in prompt,
+              'Two portraits require a prompt file assigning @Image1 and @Image2 to their performers.')
     run.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='.genjutsu-init-', dir=run.parent) as tmp:
         work = Path(tmp)
@@ -277,9 +296,22 @@ def init(args):
         state = {'version': 1, 'source': source_name, 'character': character_name,
                  'source_sha256': sha(work / source_name), 'character_sha256': sha(work / character_name),
                  'duration': round(duration), 'prompt': prompt, 'subject': args.subject, 'jobs': {}}
+        if character2:
+            second_name = 'character2' + character2.suffix.lower()
+            shutil.copy2(character2, work / second_name)
+            state.update(character2=second_name, character2_sha256=sha(work / second_name))
         save(work, state)
         os.rename(work, run)
     return {'stage': 'initialized', 'run': str(run), 'duration': state['duration'], 'paid_requests': 0}
+
+
+def collect_sam_rle(run, result):
+    target = run / 'segmentation-rle.json'
+    temporary = target.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(result, indent=2) + '\n')
+    os.replace(temporary, target)
+    return {'stage': 'mask-required', 'rle': str(target),
+            'next': 'Decode the saved RLE to an aligned binary mask locally, inspect it, then build-review. No new SAM request is needed.'}
 
 
 def prepare(run, state, args):
@@ -294,6 +326,8 @@ def prepare(run, state, args):
              ('sam', SAM, 'segmentation-candidate.mp4', 'video')]
     for name, endpoint, target, field in steps:
         entry = state['jobs'].get(name, {})
+        if name == 'sam' and entry.get('phase') == 'completed' and 'rle' in entry.get('result', {}):
+            return collect_sam_rle(run, entry['result'])
         if entry.get('phase') == 'completed' and (run / target).exists():
             download(run, state, target, output_url(entry['result'], field))
             continue
@@ -309,6 +343,8 @@ def prepare(run, state, args):
                        'prompt': state['subject'], 'apply_mask': False, 'boundingbox_zip': False}
         result = job(run, state, name, endpoint, payload, args.allow_paid, transport)
         if result is not None:
+            if name == 'sam' and 'rle' in result:
+                return collect_sam_rle(run, result)
             download(run, state, target, output_url(result, field))
         return {'stage': name, 'request_id': state['jobs'][name].get('request_id'),
                 'status': 'downloaded' if result is not None else 'pending', 'next': 'repeat prepare --execute'}
@@ -333,22 +369,25 @@ def build_review(run, state, args):
         for path in work.iterdir():
             os.replace(path, run / path.name)
     state.pop('review', None)
+    state['preparation'] = {'fingerprint': review_fingerprint(run, state)}
     save(run, state)
-    return {'stage': 'awaiting-human-review', 'video': str(run / 'prepared-review.mp4'),
+    return {'stage': 'ready-for-generation', 'video': str(run / 'prepared-review.mp4'),
             'mask': str(run / 'mask.mp4'), 'numeric_report': str(run / 'mask-report.json')}
 
 
 def generate(run, state, args):
     originals(run, state)
-    require_review(run, state)
+    require_preparation(run, state)
     reference_check(run / 'prepared-review.mp4')
+    characters = [state['character']] + ([state['character2']] if state.get('character2') else [])
     if not args.execute:
-        return {'endpoint': SEEDANCE, 'input': seedance_payload('<reviewed-video>', '<character>', state['prompt'], state['duration']),
-                'submits': 0, 'review': state['review']}
+        placeholders = ['<character>'] if len(characters) == 1 else ['<character1>', '<character2>']
+        return {'endpoint': SEEDANCE, 'input': seedance_payload('<prepared-video>', placeholders, state['prompt'], state['duration']),
+                'submits': 0, 'preparation_validated': True}
     check('seedance' in state['jobs'] or args.allow_paid, 'Generation requires --allow-paid.')
     transport = Transport()
     payload = seedance_payload(upload(run, state, 'prepared-review.mp4', transport),
-                               upload(run, state, state['character'], transport), state['prompt'], state['duration'])
+                               [upload(run, state, name, transport) for name in characters], state['prompt'], state['duration'])
     result = job(run, state, 'seedance', SEEDANCE, payload, args.allow_paid, transport)
     if result is None:
         return {'stage': 'seedance-pending', 'request_id': state['jobs']['seedance']['request_id'], 'next': 'repeat generate --execute'}
@@ -373,11 +412,12 @@ def main():
     sub = p.add_subparsers(dest='command', required=True)
     q = sub.add_parser('init'); q.add_argument('--run', required=True); q.add_argument('--source', required=True)
     q.add_argument('--character', required=True); q.add_argument('--subject', default='person'); q.add_argument('--prompt-file')
+    q.add_argument('--character2', help='Optional second portrait, referenced as @Image2 in a required custom prompt.')
     for command in ('prepare', 'generate'):
         q = sub.add_parser(command); q.add_argument('--run', required=True)
         q.add_argument('--execute', action='store_true'); q.add_argument('--allow-paid', action='store_true')
     q = sub.add_parser('build-review'); q.add_argument('--run', required=True); q.add_argument('--mask', required=True)
-    q = sub.add_parser('approve-review'); q.add_argument('--run', required=True); q.add_argument('--reviewer', required=True)
+    q = sub.add_parser('approve-review', help='Optional human review annotation; not required for generation.'); q.add_argument('--run', required=True); q.add_argument('--reviewer', required=True)
     q.add_argument('--evidence', required=True); q.add_argument('--reviewed-full-clip', action='store_true', required=True)
     q.add_argument('--reviewed-mask', action='store_true', required=True)
     q = sub.add_parser('adopt'); q.add_argument('--run', required=True); q.add_argument('--job', choices=('vocals', 'depth', 'sam', 'seedance'), required=True)
@@ -401,6 +441,7 @@ def main():
             elif args.command == 'build-review': result = build_review(run, state, args)
             elif args.command == 'approve-review':
                 originals(run, state)
+                require_preparation(run, state)
                 check('seedance' not in state['jobs'], 'Cannot replace approval after generation begins.')
                 state['review'] = {'fingerprint': review_fingerprint(run, state), 'reviewer': args.reviewer, 'evidence': args.evidence}
                 save(run, state); result = {'stage': 'review-recorded', 'paid_requests': 0}
@@ -421,7 +462,7 @@ def main():
                 result = {'exported': [str(out / (run.name + '-' + n)) for n in names]}
             else:
                 result = {'run': str(run), 'jobs': {k: {'phase': v['phase'], 'request_id': v.get('request_id')} for k, v in state['jobs'].items()},
-                          'review_recorded': bool(state.get('review')), 'final_exists': (run / 'final-480p.mp4').exists()}
+                          'preparation_recorded': bool(state.get('preparation')), 'review_recorded': bool(state.get('review')), 'final_exists': (run / 'final-480p.mp4').exists()}
     print(json.dumps(result, indent=2))
 
 
