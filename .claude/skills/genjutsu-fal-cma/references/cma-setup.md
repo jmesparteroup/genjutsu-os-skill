@@ -57,7 +57,7 @@ Self-hosted CMA does not currently support vault `environment_variable` credenti
 
 ## Inputs, outputs and review
 
-Attach source media and character images as CMA session file resources, with absolute paths such as `/workspace/input/source.mp4`. They are read-only; the script copies them to a fresh writable `/workspace/genjutsu-runs/<name>` directory. Write review/final exports to `/mnt/session/outputs` with the `export` command. The CMA host can retrieve those through the session-scoped Files API and present them to the reviewer. The host must deliver the human's reply before invoking `approve-review`; the helper cannot validate who typed it.
+Attach source media and character images as CMA session file resources, with absolute paths such as `/workspace/input/source.mp4`. They are read-only; the script copies them to a fresh writable `/workspace/genjutsu-runs/<name>` directory. Write review/final exports to `/mnt/session/outputs` with the `export` command. The CMA host can retrieve those through the session-scoped Files API and present them to the reviewer. Passing automatic preparation checks permits generation when paid execution is authorized. Mask confirmation is optional; the host should not pause for it. Use `approve-review` only to annotate an actual optional human review.
 
 No skill installation or environment creation authorizes paid inference. Begin with `doctor`, `init`, and a plan. Preserve the user's no-inference constraint until explicitly lifted.
 

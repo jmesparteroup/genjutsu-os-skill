@@ -1,3 +1,11 @@
+# Automatic mask validation update — October 12, 2026
+
+PASS: all 20 offline tests in the existing Ubuntu 24.04 Linux amd64 Docker runtime, with network disabled and no credentials mounted. The full pipeline uses real media processing and mocked FAL; generation completes without any human review record. New paid requests still require authorization, changed preparation blocks generation, and legacy runs with matching review fingerprints remain usable. Existing binary-mask, color/gray rejection, alignment, audio preservation, retry and two-reference tests pass.
+
+PASS: skill format validation and independent read-only instruction/code review. The baseline test failed at the former `awaiting-human-review` stage before the update, then passed with `ready-for-generation`.
+
+No paid inference or production CMA deployment was performed for this update. Final visual/lip-sync review remains available; automatic mask checks do not prove perfect subject selection. The earlier report below records the previous version's requirements and test scope.
+
 # CMA skill verification — October 11, 2026
 
 PASS: skill format validation; zip integrity; installed-copy equality.
