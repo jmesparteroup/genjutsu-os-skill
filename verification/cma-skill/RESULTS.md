@@ -1,3 +1,9 @@
+# 30-second clip support — October 12, 2026
+
+PASS: all 20 offline tests with networking disabled in the existing Linux test runtime. Duration boundary coverage accepts 4, 15, 16, 29 and 30 seconds, rejects 3, 4.2, 24.75, 30.1 and 31 seconds, and preserves the 480p non-draft reference payload. The 16, 29 and 30-second cases failed against the old cap before the change. Skill format validation passed.
+
+This update raises the duration guard only; the existing whole-second input requirement remains. No paid inference or 30-second live provider run was performed for this change.
+
 # Automatic mask validation update — October 12, 2026
 
 PASS: all 20 offline tests in the existing Ubuntu 24.04 Linux amd64 Docker runtime, with network disabled and no credentials mounted. The full pipeline uses real media processing and mocked FAL; generation completes without any human review record. New paid requests still require authorization, changed preparation blocks generation, and legacy runs with matching review fingerprints remain usable. Existing binary-mask, color/gray rejection, alignment, audio preservation, retry and two-reference tests pass.
