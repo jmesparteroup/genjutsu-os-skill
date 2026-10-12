@@ -81,13 +81,15 @@ class OrchestrationTests(unittest.TestCase):
             g.job(self.run, self.state, 'depth', g.DEPTH, {'video_url': 'new'}, True, self.transport)
 
     def test_seedance_invariants_and_whole_second_duration(self):
-        payload = g.seedance_payload('https://fal.media/p.mp4', 'https://fal.media/c.png', 'prompt', 4)
-        self.assertEqual(payload['resolution'], '480p')
-        self.assertFalse(payload['draft'])
-        self.assertEqual(payload['task'], 'reference')
-        self.assertEqual(payload['duration'], '4')
-        for duration in [3, 4.2, 16]:
-            with self.assertRaises(g.WorkflowError):
+        for duration in [4, 15, 16, 29, 30]:
+            with self.subTest(duration=duration):
+                payload = g.seedance_payload('https://fal.media/p.mp4', 'https://fal.media/c.png', 'prompt', duration)
+                self.assertEqual(payload['resolution'], '480p')
+                self.assertFalse(payload['draft'])
+                self.assertEqual(payload['task'], 'reference')
+                self.assertEqual(payload['duration'], str(duration))
+        for duration in [3, 4.2, 24.75, 30.1, 31]:
+            with self.subTest(duration=duration), self.assertRaises(g.WorkflowError):
                 g.seedance_payload('p', 'c', 'prompt', duration)
 
     def test_preparation_is_invalid_after_media_or_prompt_change(self):

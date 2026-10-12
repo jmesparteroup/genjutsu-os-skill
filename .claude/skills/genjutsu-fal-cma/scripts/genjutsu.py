@@ -212,8 +212,8 @@ def probe(path):
 
 
 def seedance_payload(video_url, character_url, prompt, duration):
-    check(float(duration).is_integer() and 4 <= float(duration) <= 15,
-          'This skill supports exact whole-second clips from 4 to 15 seconds; do not trim or round silently.')
+    check(float(duration).is_integer() and 4 <= float(duration) <= 30,
+          'This skill supports exact whole-second clips from 4 to 30 seconds; do not trim or round silently.')
     images = [character_url] if isinstance(character_url, str) else list(character_url)
     check(1 <= len(images) <= 2 and all(isinstance(url, str) for url in images),
           'Supply one or two ordered character references.')

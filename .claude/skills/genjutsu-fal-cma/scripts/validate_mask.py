@@ -64,7 +64,7 @@ def validate(working, mask, depth=None):
         raise ValueError('Mask is empty or fills the entire clip; inspect subject selection.')
     return {'frames_checked': frames, 'width': width, 'height': height, 'fps': 24,
             'white_fraction_per_frame': coverage, 'max_gray_fraction': max(fractions),
-            'semantics': 'UNVERIFIED: human must confirm white is subject, black is background for the entire clip.'}
+            'semantics': 'UNVERIFIED: numeric checks do not establish subject selection or polarity. Manual inspection is optional.'}
 
 
 if __name__ == '__main__':

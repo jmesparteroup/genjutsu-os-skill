@@ -1,6 +1,6 @@
 # Genjutsu FAL CMA skill
 
-A reusable skill for Claude Managed Agents that adapts a supplied performance clip to a character reference using FAL. Final generation uses **Seedance 2.5 at 480p**, with automatic mask validation before generation and restoration of the first original audio stream. Manual mask confirmation is optional.
+A reusable skill for Claude Managed Agents that adapts a supplied performance clip to a character reference using FAL. Final generation uses **Seedance 2.5 at 480p** for whole-second clips from 4 to 30 seconds, with automatic mask validation before generation and restoration of the first original audio stream. Manual mask confirmation is optional.
 
 The skill includes Linux dependencies, upload/queue orchestration, resumable request IDs, frame-by-frame mask checks, local +3-semitone vocal pitch, compositing, and audio preservation checks. It creates no duplicate saved FAL workflows. Paid inference is disabled by default.
 

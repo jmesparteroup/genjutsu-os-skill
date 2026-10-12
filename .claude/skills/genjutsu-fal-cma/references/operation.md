@@ -1,6 +1,6 @@
 # Operating the staged workflow
 
-Use a source clip with audible speech and a character reference supplied by the user. The source must be 4–15 seconds, within 85 ms of a whole second, with aligned video/audio start times. This skill does not silently crop, stretch, trim or re-time inputs. Normalized video is 24 fps and at most 960 pixels on either side; both sides must remain at least 300 pixels and the aspect ratio must be 0.4–2.5 for Seedance. Character images are limited to 30 MB and reference video to 200 MB.
+Use a source clip with audible speech and a character reference supplied by the user. The source must be 4–30 seconds, within 85 ms of a whole second, with aligned video/audio start times. This skill does not silently crop, stretch, trim or re-time inputs. Normalized video is 24 fps and at most 960 pixels on either side; both sides must remain at least 300 pixels and the aspect ratio must be 0.4–2.5 for Seedance. Character images are limited to 30 MB and reference video to 200 MB.
 
 In the examples, `skill_dir` is the discovered absolute skill mount path. Set it to the path CMA reports, not a hardcoded Mac path. `run_dir` must be a new owned directory. No credentials are command arguments.
 
