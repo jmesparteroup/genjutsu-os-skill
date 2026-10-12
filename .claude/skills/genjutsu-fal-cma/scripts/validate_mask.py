@@ -74,4 +74,4 @@ if __name__ == '__main__':
     args = p.parse_args()
     report = validate(args.working, args.mask, args.depth)
     Path(args.report).write_text(json.dumps(report, indent=2) + '\n')
-    print(f'Checked {report["frames_checked"]} mask frames. Automatic mask checks passed; manual review is optional.')
+    print(f'Checked {report["frames_checked"]} mask frames. Full human visual review is still required.')

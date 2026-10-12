@@ -1,6 +1,6 @@
 # Genjutsu FAL CMA skill
 
-A reusable skill for Claude Managed Agents that adapts a supplied performance clip to a character reference using FAL. Final generation uses **Seedance 2.5 at 480p**, with automatic mask validation before generation and restoration of the first original audio stream. Manual mask confirmation is optional.
+A reusable skill for Claude Managed Agents that adapts a supplied performance clip to a character reference using FAL. Final generation uses **Seedance 2.5 at 480p**, with a manual full-clip mask review before generation and restoration of the first original audio stream.
 
 The skill includes Linux dependencies, upload/queue orchestration, resumable request IDs, frame-by-frame mask checks, local +3-semitone vocal pitch, compositing, and audio preservation checks. It creates no duplicate saved FAL workflows. Paid inference is disabled by default.
 
@@ -29,9 +29,9 @@ This writes `dist/genjutsu-fal-cma.zip` and its content manifest. It performs no
 
 ## Offline verification
 
-All 20 offline tests passed in the Ubuntu 24.04 Linux amd64 test runtime with networking disabled. The suite covers generation without manual mask confirmation, stale preparation, paid-request gates, and real media processing. See [the verification record](verification/cma-skill/RESULTS.md).
+The dependency/runtime check and 14 tests passed in Ubuntu 24.04 Linux amd64 with test-container networking disabled. See [the verification record](verification/cma-skill/RESULTS.md).
 
-For the queue/preparation tests without installing media dependencies:
+For the queue/review tests without installing media dependencies:
 
 ```bash
 python3 verification/cma-skill/test_orchestration.py
@@ -49,6 +49,6 @@ docker run --rm --platform linux/amd64 --network none \
   python -m unittest discover -s /opt/tests -p 'test_*.py' -v
 ```
 
-The October 12 mask-confirmation change was verified offline; no new paid inference or production CMA deployment was performed for this update. Earlier local FAL runs are separate from this offline verification. SAM returns a segmentation candidate; the skill requires a usable binary mask and does not assume its video output meets that requirement. Preparation fingerprints bind checked media and references; changed inputs require rebuilding. Paid execution still requires authorization, but passing mask checks no longer pauses for user confirmation.
+Actual CMA deployment, vault egress substitution, live FAL inference, SAM output mask semantics and real-source lip-sync acceptance remain **NOT RUN**. SAM returns a segmentation candidate; the skill requires a usable binary mask and does not assume its video output meets that requirement. Manual approval records bind content hashes but rely on the host to deliver the actual human's confirmation.
 
 This is an adaptation of the [original Genjutsu workflow](https://github.com/sirioberati/Genjustsu-Open-Source-Workflow), not a verified one-click replica. No source clip or character image is included.

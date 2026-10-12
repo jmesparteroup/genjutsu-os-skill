@@ -90,21 +90,14 @@ class MediaTests(unittest.TestCase):
             self.assertEqual(fal.calls, [])
             for _ in range(3): g.prepare(run, state, execute)
             self.assertEqual(len(fal.calls), 3)
-            built = g.build_review(run, state, argparse.Namespace(mask=str(self.base / 'mask.mp4')))
-            self.assertEqual(built['stage'], 'ready-for-generation')
-            self.assertNotIn('review', state)
+            g.build_review(run, state, argparse.Namespace(mask=str(self.base / 'mask.mp4')))
             review_exports = json.loads(subprocess.check_output([sys.executable, str(ROOT / 'scripts/genjutsu.py'),
                 'export', '--run', str(run), '--output-dir', str(self.base / 'exports')]))
             self.assertEqual(len(review_exports['exported']), 3)
             self.assertTrue(all(Path(p).exists() for p in review_exports['exported']))
-            with self.assertRaisesRegex(g.WorkflowError, 'allow-paid'):
-                g.generate(run, state, argparse.Namespace(execute=True, allow_paid=False))
-            self.assertEqual(len(fal.calls), 3)  # paid gate still blocks generation
-            original_mask = (run / 'mask.mp4').read_bytes()
-            (run / 'mask.mp4').write_bytes(b'changed mask')
             with self.assertRaises(g.WorkflowError): g.generate(run, state, execute)
-            self.assertEqual(len(fal.calls), 3)
-            (run / 'mask.mp4').write_bytes(original_mask)
+            self.assertEqual(len(fal.calls), 3)  # review gate blocks generation
+            state['review'] = {'fingerprint': g.review_fingerprint(run, state), 'reviewer': 'synthetic test', 'evidence': 'offline fixture; not user approval'}
             self.assertEqual(g.generate(run, state, plan)['submits'], 0)
             result = g.generate(run, state, execute)
             self.assertEqual(result['stage'], 'awaiting-final-visual-review')
